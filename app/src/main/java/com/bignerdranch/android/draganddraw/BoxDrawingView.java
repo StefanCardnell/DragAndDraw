@@ -4,16 +4,23 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+
+import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class BoxDrawingView extends View {
     private static final String TAG = "BoxDrawingView";
+
+    private static final String KEY_BOXEN = "boxen";
+    private static final String KEY_PARENT_VIEW = "parent_view";
 
     private Box mCurrentBox;
     private List<Box> mBoxen = new ArrayList<>();
@@ -30,6 +37,22 @@ public class BoxDrawingView extends View {
         mBoxPaint.setColor(0x22ff0000);
         mBackgroundPaint = new Paint();
         mBackgroundPaint.setColor(0xfff8efe0);
+    }
+
+    @Nullable
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        Bundle bundle = new Bundle();
+        bundle.putParcelableArrayList(KEY_BOXEN, (ArrayList<Box>) mBoxen);
+        bundle.putParcelable(KEY_PARENT_VIEW, super.onSaveInstanceState());
+        return bundle;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        Bundle bundle = (Bundle) state;
+        mBoxen = bundle.getParcelableArrayList(KEY_BOXEN);
+        super.onRestoreInstanceState(bundle.getParcelable(KEY_PARENT_VIEW));
     }
 
     @Override
