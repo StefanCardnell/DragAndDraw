@@ -85,26 +85,26 @@ public class BoxDrawingView extends View {
         String action = "";
 
         switch(event.getActionMasked()) {
-            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_DOWN: // First finger has entered the game
                 action = "ACTION_DOWN";
                 mPrimaryPointer = new Pointer(event);
                 mCurrentBox = new Box(mPrimaryPointer.getStartPos());
                 mBoxen.add(mCurrentBox);
                 break;
-            case MotionEvent.ACTION_POINTER_DOWN:
+            case MotionEvent.ACTION_POINTER_DOWN: // Second finger has entered the game
                 action = "ACTION_POINTER_DOWN";
                 mSecondaryPointer = new Pointer(event);
-                mCurrentBox = null; // Second finger has entered the game
+                mCurrentBox = null;
                 break;
-            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_UP: // First finger has left the game
                 action = "ACTION_UP";
                 mPrimaryPointer = null;
                 mCurrentBox = null;
                 break;
-            case MotionEvent.ACTION_POINTER_UP:
+            case MotionEvent.ACTION_POINTER_UP: // Second finger has left the game
                 action = "ACTION_POINTER_UP";
                 for(Box box : mBoxen) box.addRotation(mCurrentRotation);
-                mSecondaryPointer = null; // Second finger has left the game
+                mSecondaryPointer = null;
                 mCurrentRotation = 0;
                 break;
             case MotionEvent.ACTION_MOVE:
@@ -125,6 +125,7 @@ public class BoxDrawingView extends View {
                 mPrimaryPointer = null;
                 mSecondaryPointer = null;
                 mCurrentBox = null;
+                mCurrentRotation = 0;
                 break;
         }
 
