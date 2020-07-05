@@ -25,12 +25,11 @@ public class BoxDrawingView extends View {
     private Paint mBoxPaint;
     private Paint mBackgroundPaint;
 
-    private List<Box> mBoxen = new ArrayList<>();
-    private Box mCurrentBox;
-
     private Pointer mPrimaryPointer;
     private Pointer mSecondaryPointer;
 
+    private List<Box> mBoxen = new ArrayList<>();
+    private Box mCurrentBox;
     private float mCurrentRotation = 0; // Additional rotation held by user
 
     public BoxDrawingView(Context context) {
@@ -114,8 +113,8 @@ public class BoxDrawingView extends View {
                 } else if (mPrimaryPointer != null && mSecondaryPointer != null) {
                     mCurrentRotation = angleBetweenTwoLines(
                             mPrimaryPointer.getStartPos(),
-                            mPrimaryPointer.getCurrentPos(event),
                             mSecondaryPointer.getStartPos(),
+                            mPrimaryPointer.getCurrentPos(event),
                             mSecondaryPointer.getCurrentPos(event));
                 }
                 invalidate();
@@ -132,10 +131,11 @@ public class BoxDrawingView extends View {
         Log.i(TAG, action
                 + " at x=" + event.getX(event.getActionIndex())
                 + ", y=" + event.getY(event.getActionIndex()));
+
         return true;
     }
  
-    static float angleBetweenTwoLines(PointF primStart, PointF primEnd, PointF secondStart, PointF secondEnd){
+    static float angleBetweenTwoLines(PointF primStart, PointF secondStart, PointF primEnd, PointF secondEnd){
         double rotationStart = Math.atan2(primStart.y - secondStart.y, primStart.x - secondStart.x);
         double rotationEnd = Math.atan2(primEnd.y - secondEnd.y, primEnd.x - secondEnd.x);
         return (float) Math.toDegrees(rotationStart-rotationEnd);
