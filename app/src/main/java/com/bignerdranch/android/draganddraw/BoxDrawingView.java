@@ -22,10 +22,16 @@ public class BoxDrawingView extends View {
     private static final String KEY_BOXEN = "boxen";
     private static final String KEY_PARENT_VIEW = "parent_view";
 
-    private Box mCurrentBox;
-    private List<Box> mBoxen = new ArrayList<>();
     private Paint mBoxPaint;
     private Paint mBackgroundPaint;
+
+    private List<Box> mBoxen = new ArrayList<>();
+    private Box mCurrentBox;
+
+    private Pointer mPrimaryPointer;
+    private Pointer mSecondaryPointer;
+
+    private float mCurrentRotation = 0; // Additional rotation held by user
 
     public BoxDrawingView(Context context) {
         this(context, null);
@@ -60,44 +66,77 @@ public class BoxDrawingView extends View {
         canvas.drawPaint(mBackgroundPaint);
 
         for(Box box : mBoxen){
+            // Save canvas, then rotate it before drawing
+            canvas.save();
+            canvas.rotate(box.getRotation() + mCurrentRotation, getWidth()/2f, getHeight()/2f);
+
             float left = Math.min(box.getOrigin().x, box.getCurrent().x);
             float right = Math.max(box.getOrigin().x, box.getCurrent().x);
             float top = Math.min(box.getOrigin().y, box.getCurrent().y);
             float bottom = Math.max(box.getOrigin().y, box.getCurrent().y);
 
             canvas.drawRect(left, top, right, bottom, mBoxPaint);
+            canvas.restore(); // Restore canvas to non-rotated state
         }
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        PointF current = new PointF(event.getX(), event.getY());
         String action = "";
 
-        switch(event.getAction()) {
+        switch(event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
                 action = "ACTION_DOWN";
-                mCurrentBox = new Box(current);
+                mPrimaryPointer = new Pointer(event);
+                mCurrentBox = new Box(mPrimaryPointer.getStartPos());
                 mBoxen.add(mCurrentBox);
                 break;
-            case MotionEvent.ACTION_MOVE:
-                action = "ACTION_MOVE";
-                if(mCurrentBox != null){
-                    mCurrentBox.setCurrent(current);
-                    invalidate();
-                }
+            case MotionEvent.ACTION_POINTER_DOWN:
+                action = "ACTION_POINTER_DOWN";
+                mSecondaryPointer = new Pointer(event);
+                mCurrentBox = null; // Second finger has entered the game
                 break;
             case MotionEvent.ACTION_UP:
                 action = "ACTION_UP";
+                mPrimaryPointer = null;
                 mCurrentBox = null;
+                break;
+            case MotionEvent.ACTION_POINTER_UP:
+                action = "ACTION_POINTER_UP";
+                for(Box box : mBoxen) box.addRotation(mCurrentRotation);
+                mSecondaryPointer = null; // Second finger has left the game
+                mCurrentRotation = 0;
+                break;
+            case MotionEvent.ACTION_MOVE:
+                action = "ACTION_MOVE";
+                if(mCurrentBox != null && mPrimaryPointer != null) {
+                    mCurrentBox.setCurrent(mPrimaryPointer.getCurrentPos(event));
+                } else if (mPrimaryPointer != null && mSecondaryPointer != null) {
+                    mCurrentRotation = angleBetweenTwoLines(
+                            mPrimaryPointer.getStartPos(),
+                            mPrimaryPointer.getCurrentPos(event),
+                            mSecondaryPointer.getStartPos(),
+                            mSecondaryPointer.getCurrentPos(event));
+                }
+                invalidate();
                 break;
             case MotionEvent.ACTION_CANCEL:
                 action = "ACTION_CANCEL";
+                mPrimaryPointer = null;
+                mSecondaryPointer = null;
                 mCurrentBox = null;
                 break;
         }
 
-        Log.i(TAG, action + " at x=" + current.x + ", y=" + current.y);
+        Log.i(TAG, action
+                + " at x=" + event.getX(event.getActionIndex())
+                + ", y=" + event.getY(event.getActionIndex()));
         return true;
+    }
+ 
+    static float angleBetweenTwoLines(PointF primStart, PointF primEnd, PointF secondStart, PointF secondEnd){
+        double rotationStart = Math.atan2(primStart.y - secondStart.y, primStart.x - secondStart.x);
+        double rotationEnd = Math.atan2(primEnd.y - secondEnd.y, primEnd.x - secondEnd.x);
+        return (float) Math.toDegrees(rotationStart-rotationEnd);
     }
 }

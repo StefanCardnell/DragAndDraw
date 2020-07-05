@@ -7,6 +7,7 @@ import android.os.Parcelable;
 public class Box implements Parcelable {
     private PointF mOrigin;
     private PointF mCurrent;
+    private float rotation = 0;
 
     public Box(PointF origin) {
         mOrigin = origin;
@@ -28,6 +29,18 @@ public class Box implements Parcelable {
 
     public PointF getOrigin() {
         return mOrigin;
+    }
+
+    public float getRotation() {
+        return rotation;
+    }
+
+    public void setRotation(float rotation) {
+        this.rotation = rotation;
+    }
+
+    public void addRotation(float rotation) {
+        this.rotation += rotation;
     }
 
     @Override
